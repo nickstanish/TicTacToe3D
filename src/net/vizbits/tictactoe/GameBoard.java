@@ -1,8 +1,11 @@
-package com.blogspot.javafilter.tictactoe;
+package net.vizbits.tictactoe;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -24,13 +27,15 @@ public class GameBoard extends JPanel{
 	 * Nick Stanish
 	 */
 	private static final long serialVersionUID = 855429676410275612L;
+	public static byte X_VALUE = 1;
+	public static byte Y_VALUE = -1;
 	private int win;
 	private Controller control;
 	private int y = 40, x = 40;
 	private int xWins, oWins = 0;
 	private boolean Xturn = true;
 	private int[][] winCombos = {
-			{0,3,6},{0,1,2},{9,12,15},{9,10,11},{18,21,24},{18,19,20},
+			{0,3,6},{0,1,2},{9,12,15},{9,10,11},{18,21,24},{18,19,20}, // derive?
 			{1,4,7},{3,4,5},{10,13,16},{12,13,14},{19,22,25},{21,22,23},
 			{2,5,8},{6,7,8},{11,14,17},{15,16,17},{20,23,26},{24,25,26},
 			{0,9,18},{3,12,21},{1,10,19},{4,13,22},{2,11,20},{5,14,23},
@@ -39,14 +44,14 @@ public class GameBoard extends JPanel{
 			{6,16,26},{2,10,18},{0,12,24},{6,12,18},{5,13,21},{1,13,25},
 			{7,13,19},{8,16,24},{2,14,26},{8,14,20},{7,16,25},{6,15,24},
 			{8,17,26} };
-	private int[] cell = new int[27];
+	private Cell[] cells = new Cell[27];
 	private int[] winners = new int[3];
-	private int[] cellRank = {7,4,7,4,5,4,7,4,7,4,5,4,5,13,5,4,5,4,7,4,7,4,5,4,7,4,7};
+	private int[] cellRank = {7,4,7,4,5,4,7,4,7,4,5,4,5,13,5,4,5,4,7,4,7,4,5,4,7,4,7}; // auto? count each number
 	private int ai[] = {0,0,0};
 	private boolean winChecked = true;
 	private Random rdm = new Random();
 	private File file;
-	private BufferedImage background, xImage, circleImage, turnImage, winImage, xIcon, oIcon, refresh, highlightImage;
+	public BufferedImage background, xImage, circleImage, turnImage, winImage, xIcon, oIcon, refresh, highlightImage;
 	
 	/************************************************************
 	 * Repaint timer: 800 ms
@@ -63,10 +68,10 @@ public class GameBoard extends JPanel{
 	    winners[1]= -1;
 	    winners[2] = -1;
 	    Arrays.fill(ai, 0);
-	    Arrays.fill(cell, 0);
+	    
 	    for (int p = 0; p < 27; p++){
 	        cellRank[p] = values[p];
-	        System.out.print(cellRank[p]);
+	        cells[p].reset();
 	    }
 	    win = 0;
 	    winChecked = false;
@@ -77,23 +82,23 @@ public class GameBoard extends JPanel{
 	//***********************************************************
 	private void updateAI(){
 	    //set ranks
-	        for(int x = 0; x < winCombos.length; x++){
-	        int a = winCombos[x][0];
-	        int b = winCombos[x][1];
-	        int c = winCombos[x][2];
-	        if(cell[a] == cell[b] && cell[a] != 0){
+	        for(int i = 0; i < winCombos.length; x++){
+	        int a = winCombos[i][0];
+	        int b = winCombos[i][1];
+	        int c = winCombos[i][2];
+	        if(cells[a].value == cells[b].value && cells[a].value != 0){
 	            cellRank[c] += 15;
 	        }
-	        if(cell[a] == cell[c] && cell[a] != 0){
+	        if(cells[a].value == cells[c].value && cells[a].value != 0){
 	            cellRank[b] += 15;
 	        }
-	        if(cell[c] == cell[b] && cell[c] != 0){
+	        if(cells[c].value == cells[b].value && cells[c].value != 0){
 	            cellRank[a] += 15;
 	        }
 	    }
-	    for(int x = 0; x < cell.length; x++){
-	        if(cell[x] != 0){
-	            cellRank[x] = 0;
+	    for(int i = 0; x < cells.length; x++){
+	        if(cells[i].value != 0){
+	            cellRank[i] = 0;
 	        }
 	     }
 	}
@@ -105,36 +110,36 @@ public class GameBoard extends JPanel{
 	            //easy
 	            if(x > .95){ //5%
 	                //pick best move
-	                cell[ai[2]] = switchTurns();
+	                cells[ai[2]].value = switchTurns();
 	            }
 	            else if(x > .5){
 	                //pick second best move
-	                cell[ai[1]] = switchTurns();
+	                cells[ai[1]].value = switchTurns();
 	            }
 	            else{
 	                //pick third best move
-	                cell[ai[0]] = switchTurns();
+	                cells[ai[0]].value = switchTurns();
 	            }
 	            break;
 	        case 1:
 	            //medium
 	            if(x > .5){
 	                //pick best move
-	                cell[ai[2]] = switchTurns();
+	                cells[ai[2]].value = switchTurns();
 	            }
 	            else if(x > .05){
 	                //pick second best move
-	                cell[ai[1]] = switchTurns();
+	                cells[ai[1]].value = switchTurns();
 	            }
 	            else{
 	                //pick third best move
-	                cell[ai[0]] = switchTurns();
+	                cells[ai[0]].value = switchTurns();
 	            }
 	            break;
 	        case 2:
 	            //hard
 	            //pick best move
-	            cell[ai[2]] = switchTurns();
+	            cells[ai[2]].value = switchTurns();
 	            break;
 	            
 	    }
@@ -166,8 +171,8 @@ public class GameBoard extends JPanel{
 	        }
 	    }
 	}
-	public int switchTurns(){
-		int number;
+	public byte switchTurns(){
+		byte number;
 	    if (Xturn){
 	    	Xturn = false;
 	        number = 1; //x
@@ -186,11 +191,11 @@ public class GameBoard extends JPanel{
 	        int a = winCombos[x][0];
 	        int b = winCombos[x][1];
 	        int c = winCombos[x][2];
-	        if(cell[a] == cell[b] && cell[b] == cell[c] && cell[a] != 0){
-	            win = cell[a];
-	            winners[0] = a;
-	            winners[1] = b;
-	            winners[2] = c;
+	        if(cells[a].value == cells[b].value && cells[b].value == cells[c].value && cells[a].value != 0){
+	            win = cells[a].value;
+	            cells[a].setWin();
+	            cells[b].setWin();
+	            cells[c].setWin();
 	        }
 	    }
 	return win;
@@ -208,32 +213,16 @@ public class GameBoard extends JPanel{
 	class GameListener implements MouseListener {
 	    public void mouseClicked(MouseEvent e){}
 	    public void mousePressed (MouseEvent e){
-	        int mouseX = e.getPoint().x;
-	        int mouseY = e.getPoint().y;
-	        if (win == 0){
-	            for (int c =0; c < 3; c++){
-	                if (mouseX > (x * (c + 1)) && mouseX < (x * (c + 4)) && mouseY > (y * (1+ (4*c))) && mouseY < (y*(4*(c+1)))){
-	                    for (int a = 0; a <3; a++){
-	                        for (int b = 0; b <3; b++){
-	                            if ((mouseX > ((a+1 +c) * x)) && (mouseX < ((a+2 + c)*x)) && (mouseY > ((b+1+(4*c))*y)) && (mouseY < ((b+2+(4*c))*y) )){
-	                                int y = 9*c + a + 3*b;
-	                                if(cell[y] == 0){
-	                                    cell[y] = switchTurns();
-	                                }
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	            checkWin();
-	            repaint();
+	        for(Cell c: cells){
+	        	if(win == 0 && c.contains(e.getPoint())){
+	        		if(c.value == 0){
+	        			c.value = switchTurns();
+	        			checkWin();
+	        		}	
+	        	}
 	        }
-	        else{
-	            if (mouseX > 230 && mouseX < 270 && mouseY > 50 && mouseY < 90){
-	                Clear();
-	                
-	            }
-	        }
+	        Rectangle clear = new Rectangle(230,50,40,40);
+	        if (clear.contains(e.getPoint())) Clear();
 	        repaint();
 	    }
 	    public void mouseReleased(MouseEvent e){}
@@ -260,6 +249,14 @@ public class GameBoard extends JPanel{
 	    refresh = ImageIO.read(file);
 	    file = new File("media/highlight.png");
 	    highlightImage = ImageIO.read(file);
+	    for(int c = 0; c<3; c++){
+	    	for(int a = 0; a <3; a ++){
+	    		for (int b = 0; b < 3; b++) {
+	    			int y = 9*c + a + 3*b;
+	    			cells[c+a+b] = new Cell(x*(a+1+c), y*(b+1+(4*c)), x,x ,this );
+	            }
+	    	}
+	    }
 	    repaintTimer.start();
 	    }
 	    catch(IOException ie){
@@ -273,15 +270,27 @@ public class GameBoard extends JPanel{
 	  	this.control = control;
 	   	control.setGameBoard(this);
 	  	initComponents();
+	  	for(int i = 0; i< 27; i ++){
+	  		/*
+	  		 * set up initial location of cells::staggered
+	  		 */
+	  		cells[i] = new Cell(x*(i%3 + i/9 + 1), y*(i/3 + i/9 + 1),x,x,this );
+	  	}
 	    setPreferredSize(new Dimension(350, 500));
-	    setBackground(Color.lightGray);
+	    setBackground(Color.white);
 	    addMouseListener(new GameListener());
 	    Clear();
 	}
+	/*
+	 * cleanup
+	 */
 	@Override
-	public void paintComponent (Graphics g){
-		super.paintComponent(g);
-	    g.drawImage(background, 0,0,null);
+	public void paintComponent (Graphics g2){
+		super.paintComponent(g2);
+		Graphics2D g = (Graphics2D)g2;
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	   
+		g.drawImage(background, 0,0,null);
 	    g.setColor(Color.BLACK);
 	    g.drawImage(null, x, y, null);
 	    if( win == 0){
@@ -317,22 +326,11 @@ public class GameBoard extends JPanel{
 		    }
 	    	
 	    }
-	    for(int c = 0; c<3; c++){
-	    	for(int a = 0; a <3; a ++){
-	    		for (int b = 0; b < 3; b++) {
-	    			int y = 9*c + a + 3*b;
-	                if(winners[0] == y || winners[1] == y || winners[2] == y){
-	                	g.drawImage(highlightImage,x*(a+1+c),x*(b+1+(4*c)),null);
-	                }
-	                if (cell[y] == 1){
-	                	g.drawImage(xImage,x*(a+1+c),x*(b+1+(4*c)),null);
-	                }
-	                if (cell[y] == -1){
-	                    g.drawImage(circleImage,x*(a+1+c),x*(b+1+(4*c)),null);
-	                }
-	            }
-	    	}
+	    
+	    for(Cell c: cells){
+	    	c.draw(g);
 	    }
-	    g.drawLine(160,160,240,480);
+	   g.setColor(Color.black);
+	   g.drawLine(160,160,240,480);
 	}   
 }

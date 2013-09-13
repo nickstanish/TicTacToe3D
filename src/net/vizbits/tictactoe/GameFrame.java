@@ -1,4 +1,4 @@
-package com.blogspot.javafilter.tictactoe;
+package net.vizbits.tictactoe;
 
 import java.awt.Color;
 import java.awt.Dimension;

@@ -1,4 +1,4 @@
-package com.blogspot.javafilter.tictactoe;
+package net.vizbits.tictactoe;
 
 public class Main {
 	/*

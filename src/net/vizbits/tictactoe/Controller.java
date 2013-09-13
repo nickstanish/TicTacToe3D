@@ -1,4 +1,4 @@
-package com.blogspot.javafilter.tictactoe;
+package net.vizbits.tictactoe;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -24,6 +24,9 @@ import javax.swing.JRadioButton;
 public class Controller extends JPanel {
 	/**
 	 * Nick Stanish
+	 */
+	/**
+	 * todo: redo../cleanup
 	 */
 	private static final long serialVersionUID = -6715952786491926010L;
 	private GameBoard board;
@@ -170,20 +173,17 @@ public int getGameType(){
     }
     return x;
 }
-public int getDifficulty(){
-    int x = -1;
-    if (easy.isSelected()){
-        x = 0;
-    }
-    if (medium.isSelected()){
-        x = 1;
-    }
-    if (hard.isSelected()){
-        x = 2;
-    }
-    return x;
-}
-
-
-
+	public int getDifficulty(){
+	    int x = -1;
+	    if (easy.isSelected()){
+	        x = 0;
+	    }
+	    if (medium.isSelected()){
+	        x = 1;
+	    }
+	    if (hard.isSelected()){
+	        x = 2;
+	    }
+	    return x;
+	}
 }
