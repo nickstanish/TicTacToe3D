@@ -23,7 +23,7 @@ import javax.swing.JRadioButton;
 
 public class Controller extends JPanel {
 	/**
-	 * Nick Stanish
+	 * @author: Nick Stanish
 	 */
 	/**
 	 * todo: redo../cleanup

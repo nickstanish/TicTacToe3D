@@ -2,7 +2,7 @@ package net.vizbits.tictactoe;
 
 public class Main {
 	/*
-	 * Nick Stanish
+	 * @author: Nick Stanish
 	 */
 	public static void main(String[] args) {
 		Controller control = new Controller();

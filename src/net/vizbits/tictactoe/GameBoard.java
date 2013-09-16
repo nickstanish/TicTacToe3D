@@ -24,8 +24,9 @@ import javax.swing.JPanel;
 public class GameBoard extends JPanel{
 	
 	/**
-	 * Nick Stanish
+	 * @author: Nick Stanish
 	 */
+	public static Color BGCOLOR = Color.lightGray;
 	private static final long serialVersionUID = 855429676410275612L;
 	public static byte X_VALUE = 1;
 	public static byte Y_VALUE = -1;
@@ -33,7 +34,7 @@ public class GameBoard extends JPanel{
 	private Controller control;
 	private int y = 40, x = 40;
 	private int xWins, oWins = 0;
-	private boolean Xturn = true;
+	private boolean turnX = true;
 	private int[][] winCombos = {
 			{0,3,6},{0,1,2},{9,12,15},{9,10,11},{18,21,24},{18,19,20}, // derive?
 			{1,4,7},{3,4,5},{10,13,16},{12,13,14},{19,22,25},{21,22,23},
@@ -75,7 +76,7 @@ public class GameBoard extends JPanel{
 	    }
 	    win = 0;
 	    winChecked = false;
-	    if(control.getGameType() == 1 && !Xturn && win == 0){
+	    if(control.getGameType() == 1 && !turnX && win == 0){
 	    	moveAI();
 	    }
 	}
@@ -171,22 +172,20 @@ public class GameBoard extends JPanel{
 	        }
 	    }
 	}
+	/**
+	 * switch boolean turns
+	 * @return turn it is: xvalue or yvalue
+	 */
 	public byte switchTurns(){
 		byte number;
-	    if (Xturn){
-	    	Xturn = false;
-	        number = 1; //x
-	    }
-	    else{
-	    	number = -1; //y
-	    	Xturn = true;
-	    }
+	    if (turnX) number = X_VALUE;
+	    else number = Y_VALUE;
+	    turnX = !turnX;
 	    return number;
     }
 	/***********************************************************/
 	private int check(){
-	/*shortened over 80 lines*/
-	/*supposedly checks for every given combination for every grid*/
+	/*should check for every given combination for every grid*/
 	    for(int x = 0; x < winCombos.length; x++){
 	        int a = winCombos[x][0];
 	        int b = winCombos[x][1];
@@ -205,7 +204,7 @@ public class GameBoard extends JPanel{
 	    win = check();
 	    winChecked = false;
 	    System.out.println("win = " + win);
-	    if(control.getGameType() == 1 && !Xturn && win == 0){
+	    if(control.getGameType() == 1 && !turnX && win == 0){
 	        moveAI();
 	    }
 	}
@@ -249,14 +248,6 @@ public class GameBoard extends JPanel{
 	    refresh = ImageIO.read(file);
 	    file = new File("media/highlight.png");
 	    highlightImage = ImageIO.read(file);
-	    for(int c = 0; c<3; c++){
-	    	for(int a = 0; a <3; a ++){
-	    		for (int b = 0; b < 3; b++) {
-	    			int y = 9*c + a + 3*b;
-	    			cells[c+a+b] = new Cell(x*(a+1+c), y*(b+1+(4*c)), x,x ,this );
-	            }
-	    	}
-	    }
 	    repaintTimer.start();
 	    }
 	    catch(IOException ie){
@@ -274,10 +265,10 @@ public class GameBoard extends JPanel{
 	  		/*
 	  		 * set up initial location of cells::staggered
 	  		 */
-	  		cells[i] = new Cell(x*(i%3 + i/9 + 1), y*(i/3 + i/9 + 1),x,x,this );
+	  		cells[i] = new Cell(x*(i%3 + i/9 + 1), y*(i/3 + i/9 + 1),x,x,this, (byte)i);
 	  	}
 	    setPreferredSize(new Dimension(350, 500));
-	    setBackground(Color.white);
+	    setBackground(BGCOLOR);
 	    addMouseListener(new GameListener());
 	    Clear();
 	}
@@ -287,15 +278,25 @@ public class GameBoard extends JPanel{
 	@Override
 	public void paintComponent (Graphics g2){
 		super.paintComponent(g2);
+		
 		Graphics2D g = (Graphics2D)g2;
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-	   
+		/*
+		 * clear screen
+		 */
+	    g.setColor(BGCOLOR);
+	    g.fillRect(0, 0, getWidth(), getHeight());
+	    /*
+	     * draw background
+	     */
 		g.drawImage(background, 0,0,null);
 	    g.setColor(Color.BLACK);
-	    g.drawImage(null, x, y, null);
+	    /*
+	     * display turnX or win in notification area
+	     */
 	    if( win == 0){
 	    	g.drawImage(turnImage, 190,10,null);
-	    	if (Xturn){
+	    	if (turnX){
 	    		g.drawImage(xIcon, 280,10,null);
 	    	}
 	    	else{
