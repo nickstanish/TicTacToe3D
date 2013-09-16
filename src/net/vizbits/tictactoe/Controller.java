@@ -39,7 +39,7 @@ public class Controller extends JPanel {
     File file;
     Image xImage, oImage;
     ImageIcon xIcon, oIcon;
-    Controller(){
+    public Controller(){
         setPreferredSize(new Dimension(150, 500));
         setBackground(Color.lightGray);
         initComponents();
