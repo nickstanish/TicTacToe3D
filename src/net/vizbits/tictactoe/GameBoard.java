@@ -31,11 +31,12 @@ public class GameBoard extends JPanel{
 	public static byte X_VALUE = 1;
 	public static byte Y_VALUE = -1;
 	private int win;
-	private Controller control;
-	private int y = 40, x = 40;
+	private Controller controller;
+	public static int height = 40, width = 40;
 	private int xWins, oWins = 0;
 	private boolean turnX = true;
-	private int[][] winCombos = {
+	private AI ai;
+	public static int[][] winCombos = {
 			{0,3,6},{0,1,2},{9,12,15},{9,10,11},{18,21,24},{18,19,20}, // derive?
 			{1,4,7},{3,4,5},{10,13,16},{12,13,14},{19,22,25},{21,22,23},
 			{2,5,8},{6,7,8},{11,14,17},{15,16,17},{20,23,26},{24,25,26},
@@ -45,12 +46,9 @@ public class GameBoard extends JPanel{
 			{6,16,26},{2,10,18},{0,12,24},{6,12,18},{5,13,21},{1,13,25},
 			{7,13,19},{8,16,24},{2,14,26},{8,14,20},{7,16,25},{6,15,24},
 			{8,17,26} };
-	private Cell[] cells = new Cell[27];
-	private int[] winners = new int[3];
-	private int[] cellRank = {7,4,7,4,5,4,7,4,7,4,5,4,5,13,5,4,5,4,7,4,7,4,5,4,7,4,7}; // auto? count each number
-	private int ai[] = {0,0,0};
+	public Cell[] cells = new Cell[27];
 	private boolean winChecked = true;
-	private Random rdm = new Random();
+	private Random random = new Random();
 	private File file;
 	public BufferedImage background, xImage, circleImage, turnImage, winImage, xIcon, oIcon, refresh, highlightImage;
 	
@@ -64,112 +62,28 @@ public class GameBoard extends JPanel{
 	});
 	//***********************************************************
 	public void Clear(){
-	    int[] values = {7,4,7,4,5,4,7,4,7,4,5,4,5,13,5,4,5,4,7,4,7,4,5,4,7,4,7};
-	    winners[0] = -1;
-	    winners[1]= -1;
-	    winners[2] = -1;
-	    Arrays.fill(ai, 0);
-	    
 	    for (int p = 0; p < 27; p++){
-	        cellRank[p] = values[p];
 	        cells[p].reset();
 	    }
+	    ai.reset();
 	    win = 0;
 	    winChecked = false;
-	    if(control.getGameType() == 1 && !turnX && win == 0){
-	    	moveAI();
-	    }
-	}
-	//***********************************************************
-	private void updateAI(){
-	    //set ranks
-	        for(int i = 0; i < winCombos.length; x++){
-	        int a = winCombos[i][0];
-	        int b = winCombos[i][1];
-	        int c = winCombos[i][2];
-	        if(cells[a].value == cells[b].value && cells[a].value != 0){
-	            cellRank[c] += 15;
-	        }
-	        if(cells[a].value == cells[c].value && cells[a].value != 0){
-	            cellRank[b] += 15;
-	        }
-	        if(cells[c].value == cells[b].value && cells[c].value != 0){
-	            cellRank[a] += 15;
-	        }
-	    }
-	    for(int i = 0; x < cells.length; x++){
-	        if(cells[i].value != 0){
-	            cellRank[i] = 0;
-	        }
-	     }
+	    moveAI();
 	}
 	private void moveAI(){
-	    find3Best();
-	    double x = rdm.nextDouble();
-	    switch (control.getDifficulty()){
-	        case 0:
-	            //easy
-	            if(x > .95){ //5%
-	                //pick best move
-	                cells[ai[2]].value = switchTurns();
-	            }
-	            else if(x > .5){
-	                //pick second best move
-	                cells[ai[1]].value = switchTurns();
-	            }
-	            else{
-	                //pick third best move
-	                cells[ai[0]].value = switchTurns();
-	            }
-	            break;
-	        case 1:
-	            //medium
-	            if(x > .5){
-	                //pick best move
-	                cells[ai[2]].value = switchTurns();
-	            }
-	            else if(x > .05){
-	                //pick second best move
-	                cells[ai[1]].value = switchTurns();
-	            }
-	            else{
-	                //pick third best move
-	                cells[ai[0]].value = switchTurns();
-	            }
-	            break;
-	        case 2:
-	            //hard
-	            //pick best move
-	            cells[ai[2]].value = switchTurns();
-	            break;
-	            
-	    }
-	    checkWin();
-	}
-	private void find3Best(){
-	    updateAI();
-	    int a = 0;
-	    int b = 0;
-	    int c = 0;
-	    for(int y = 0; y < cellRank.length; y++){
-	        if (cellRank[y] > c){
-	            ai[0] = ai[1];
-	            ai[1] = ai[2];
-	            ai[2] = y;
-	            a = b;
-	            b = c;
-	            c = cellRank[y];
-	        }
-	        else if (cellRank[y] > b){
-	            ai[0] = ai[1];
-	            ai[2] =  y;
-	            a = b;
-	            b = cellRank[y];
-	        }
-	        else if (cellRank[y] > a){
-	            ai[0] =  y;
-	            a = cellRank[y];
-	        }
+		if(controller.getGameType() == 1 && !turnX && win == 0){
+			System.out.print(">>AI");
+			int c = 0;
+			/*
+			 * fixes bug where ai picks a location that is already taken... which shouldnt have been possible..
+			 */
+			do{
+				c = ai.getMove();
+				System.out.println("\t" + c);
+			}
+			while(cells[c].value != 0);
+	    	cells[c].value = switchTurns();
+	    	checkWin();
 	    }
 	}
 	/**
@@ -177,9 +91,7 @@ public class GameBoard extends JPanel{
 	 * @return turn it is: xvalue or yvalue
 	 */
 	public byte switchTurns(){
-		byte number;
-	    if (turnX) number = X_VALUE;
-	    else number = Y_VALUE;
+		byte number = turnX ? X_VALUE : Y_VALUE;
 	    turnX = !turnX;
 	    return number;
     }
@@ -204,15 +116,13 @@ public class GameBoard extends JPanel{
 	    win = check();
 	    winChecked = false;
 	    System.out.println("win = " + win);
-	    if(control.getGameType() == 1 && !turnX && win == 0){
-	        moveAI();
-	    }
+	    moveAI();
 	}
 	/***********************************************************/
 	class GameListener implements MouseListener {
 	    public void mouseClicked(MouseEvent e){}
 	    public void mousePressed (MouseEvent e){
-	        for(Cell c: cells){
+	    	for(Cell c: cells){
 	        	if(win == 0 && c.contains(e.getPoint())){
 	        		if(c.value == 0){
 	        			c.value = switchTurns();
@@ -257,16 +167,17 @@ public class GameBoard extends JPanel{
 	    }  
 	}
 //***********************************************************
-	public GameBoard(Controller control){
-	  	this.control = control;
-	   	control.setGameBoard(this);
+	public GameBoard(Controller controller){
+	  	this.controller = controller;
+	   	this.controller.setGameBoard(this);
 	  	initComponents();
 	  	for(int i = 0; i< 27; i ++){
 	  		/*
 	  		 * set up initial location of cells::staggered
 	  		 */
-	  		cells[i] = new Cell(x*(i%3 + i/9 + 1), y*(i/3 + i/9 + 1),x,x,this, (byte)i);
+	  		cells[i] = new Cell(width*(i%3 + i/9 + 1), height*(i/3 + i/9 + 1),width,height,this, (byte)i);
 	  	}
+	  	ai = new AI(this, controller);
 	    setPreferredSize(new Dimension(350, 500));
 	    setBackground(BGCOLOR);
 	    addMouseListener(new GameListener());
@@ -309,12 +220,12 @@ public class GameBoard extends JPanel{
 	    	if(!winChecked){
 		    	if (win == 1){
 		    		xWins++;
-		    		control.xWins();
+		    		controller.xWins();
 		    		System.out.println("x: " + xWins + " o: " + oWins);
 		    	}
 		    	else{
 		    		oWins++;
-		    		control.oWins();
+		    		controller.oWins();
 		    		System.out.println("x: " + xWins + " o: " + oWins);
 		    	}
 		    	winChecked = true;

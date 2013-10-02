@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 
 public class GameFrame extends JFrame{
 	/**
-	 * Nick Stanish
+	 * @author: Nick Stanish
 	 */
 	private static final long serialVersionUID = 3384368516552751571L;
 
