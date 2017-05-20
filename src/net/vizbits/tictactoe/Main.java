@@ -1,9 +1,11 @@
 package net.vizbits.tictactoe;
 
+/**
+ * 
+ * @author Nick Stanish
+ *
+ */
 public class Main {
-    /*
-     * @author: Nick Stanish
-     */
 
     public static void main(String[] args) {
         Controller control = new Controller();
